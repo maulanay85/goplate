@@ -7,4 +7,5 @@ import (
 
 func Route(s *server.Server) {
 	s.GET("/ping", controller.Ping)
+	s.POST("/short", controller.Short)
 }

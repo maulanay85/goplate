@@ -116,9 +116,28 @@ type HandlerFunc func(*Context)
 func (c *Context) JSON(status int, data any) {
 	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.WriteHeader(status)
-	json.NewEncoder(c.Writer).Encode(data)
+	if err := json.NewEncoder(c.Writer).Encode(data); err != nil {
+		http.Error(c.Writer, "internal error", http.StatusInternalServerError)
+	}
 }
 
 func (c *Context) OK(data any) {
 	c.JSON(http.StatusOK, data)
+}
+
+func (c *Context) InternalServerError(data any) {
+	c.JSON(http.StatusInternalServerError, data)
+}
+
+func (c *Context) BindJSON(v any) error {
+	if c.Request.Body == nil {
+		return fmt.Errorf("empty request body")
+	}
+
+	defer c.Request.Body.Close()
+
+	if err := json.NewDecoder(c.Request.Body).Decode(v); err != nil {
+		return err
+	}
+	return nil
 }
